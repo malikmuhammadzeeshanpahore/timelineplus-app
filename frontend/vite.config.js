@@ -1,13 +1,13 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import viteCompression from 'vite-plugin-compression';
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react(),
-    viteCompression({ algorithm: 'brotliCompress' }),
-    viteCompression({ algorithm: 'gzip' })
+    // Remove viteCompression plugins - they're not needed for Android assets
+    // viteCompression({ algorithm: 'brotliCompress' }),
+    // viteCompression({ algorithm: 'gzip' })
   ],
   build: {
     outDir: 'dist',
@@ -34,11 +34,6 @@ export default defineConfig({
             if (id.includes('react-icons') || id.includes('lucide-react')) {
               return 'icons-vendor';
             }
-            // Everything else stays in the main chunk (index) or a catch-all if safe
-            // Returning nothing lets Vite/Rollup decide (safer)
-            // Or return 'vendor' BUT we must ensure no circular deps.
-            // Current issue: 'vendor' depends on 'react-vendor' and vice versa.
-            // Safest: Don't force a 'vendor' chunk for "everything else". Let Vite handle the rest.
           }
         }
       }
@@ -62,5 +57,3 @@ export default defineConfig({
     allowedHosts: true
   }
 })
-
-
