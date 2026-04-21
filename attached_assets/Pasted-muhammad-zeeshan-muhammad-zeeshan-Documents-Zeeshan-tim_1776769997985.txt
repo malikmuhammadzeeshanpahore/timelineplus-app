@@ -1,0 +1,52 @@
+muhammad_zeeshan@muhammad-zeeshan:~/Documents/Zeeshan/timelineplus-app$ ^[[200~git add .
+o APK + load from assets"
+git push origin main^[[201~git: command not found
+muhammad_zeeshan@muhammad-zeeshan:~/Documents/Zeeshan/timelineplus-app$ git commit -m "Bundle frontend into APK + load from assets"
+On branch main
+Your branch is ahead of 'origin/main' by 1 commit.
+  (use "git push" to publish your local commits)
+
+nothing to commit, working tree clean
+muhammad_zeeshan@muhammad-zeeshan:~/Documents/Zeeshan/timelineplus-app$ git add .
+git commit -m "Bundle frontend into APK + load from assets"
+git push origin main
+On branch main
+Your branch is ahead of 'origin/main' by 1 commit.
+  (use "git push" to publish your local commits)
+
+nothing to commit, working tree clean
+To https://github.com/malikmuhammadzeeshanpahore/timelineplus-app.git
+ ! [rejected]        main -> main (fetch first)
+error: failed to push some refs to 'https://github.com/malikmuhammadzeeshanpahore/timelineplus-app.git'
+hint: Updates were rejected because the remote contains work that you do not
+hint: have locally. This is usually caused by another repository pushing to
+hint: the same ref. If you want to integrate the remote changes, use
+hint: 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+muhammad_zeeshan@muhammad-zeeshan:~/Documents/Zeeshan/timelineplus-app$ git pull
+remote: Enumerating objects: 27, done.
+remote: Counting objects: 100% (27/27), done.
+remote: Compressing objects: 100% (3/3), done.
+remote: Total 14 (delta 5), reused 14 (delta 5), pack-reused 0 (from 0)
+Unpacking objects: 100% (14/14), 2.32 KiB | 791.00 KiB/s, done.
+From https://github.com/malikmuhammadzeeshanpahore/timelineplus-app
+   1bd12fe..f90a8e3  main       -> origin/main
+hint: Diverging branches can't be fast-forwarded, you need to either:
+hint: 
+hint:   git merge --no-ff
+hint: 
+hint: or:
+hint: 
+hint:   git rebase
+hint: 
+hint: Disable this message with "git config advice.diverging false"
+fatal: Not possible to fast-forward, aborting.
+muhammad_zeeshan@muhammad-zeeshan:~/Documents/Zeeshan/timelineplus-app$ git merge --no-ff
+Auto-merging android/app/src/main/java/com/timelineplus/app/MainActivity.kt
+CONFLICT (content): Merge conflict in android/app/src/main/java/com/timelineplus/app/MainActivity.kt
+Automatic merge failed; fix conflicts and then commit the result.
+muhammad_zeeshan@muhammad-zeeshan:~/Documents/Zeeshan/timelineplus-app$ git merge --no-ff
+error: Merging is not possible because you have unmerged files.
+hint: Fix them up in the work tree, and then use 'git add/rm <file>'
+hint: as appropriate to mark resolution and make a commit.
+fatal: Exiting because of an unresolved conflict.
