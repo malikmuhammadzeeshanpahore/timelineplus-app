@@ -43,8 +43,6 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         const val HOME_URL = "https://appassets.androidplatform.net/index.html"
-        // Bundled frontend lives in app/src/main/assets/web/ and is loaded via file:// scheme.
-        const val HOME_URL = "file:///android_asset/web/index.html"
         // The remote API host the bundled frontend talks to (used to whitelist navigations).
         const val ALLOWED_HOST = "timelineplus.site"
         const val ASSETS_HOST = "appassets.androidplatform.net"
