@@ -25,3 +25,12 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - `pnpm --filter @workspace/api-server run dev` — run API server locally
 
 See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details.
+
+## Android (`android/`)
+
+Native Android Studio project — a WebView wrapper for `https://timelineplus.site/dashboard`.
+
+- Package: `com.timelineplus.app`, min SDK 24, target SDK 34, JDK 17
+- Features: pull-to-refresh, deep links (`https://timelineplus.site/*` and `timelineplus://`), file uploads (camera/gallery/docs), downloads via `DownloadManager`, FCM push notifications (activates once `google-services.json` is added)
+- CI: `.github/workflows/android.yml` builds debug + unsigned-release APKs on every push touching `android/` and uploads them as workflow artifacts. Add a `GOOGLE_SERVICES_JSON` repo secret (base64-encoded) to enable FCM in CI builds.
+- See `android/README.md` for build, signing, and deep-link verification instructions.
