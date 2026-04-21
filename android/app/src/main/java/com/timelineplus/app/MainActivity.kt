@@ -30,9 +30,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.webkit.WebSettingsCompat
-import androidx.webkit.WebViewAssetLoader
 import androidx.webkit.WebViewFeature
-import android.webkit.WebResourceResponse
 import com.google.firebase.messaging.FirebaseMessaging
 import java.io.File
 import java.text.SimpleDateFormat
@@ -42,10 +40,8 @@ import java.util.Locale
 class MainActivity : AppCompatActivity() {
 
     companion object {
-        // Run natively on the remote host bypasses all CORS/Cookie issues!
         const val ALLOWED_HOST = "timelineplus.site"
-        const val ASSETS_HOST = "timelineplus.site"
-        const val HOME_URL = "https://$ASSETS_HOST/"
+        const val HOME_URL = "https://timelineplus.site/dashboard"
     }
 
     private lateinit var swipeRefresh: SwipeRefreshLayout
@@ -118,18 +114,13 @@ class MainActivity : AppCompatActivity() {
         val scheme = data.scheme?.lowercase(Locale.ROOT)
         
         if (scheme == "http" || scheme == "https") {
-            if (data.host == ALLOWED_HOST) {
-                // If it's our domain, just pass the URL since ASSETS_HOST is the same now!
-                return data.toString()
-            }
             return data.toString()
         }
         
         if (scheme == "timelineplus") {
-            // timelineplus://path -> https://timelineplus.site/path
             val path = (data.host ?: "") + (data.path ?: "")
             val query = data.query?.let { "?$it" } ?: ""
-            return "https://$ASSETS_HOST/${path.trimStart('/')}$query"
+            return "https://timelineplus.site/${path.trimStart('/')}$query"
         }
         
         return null
@@ -168,37 +159,7 @@ class MainActivity : AppCompatActivity() {
             startDownload(url, userAgent, contentDisposition, mimeType)
         }
 
-        val assetLoader = WebViewAssetLoader.Builder()
-            .setDomain(ASSETS_HOST)
-            .addPathHandler("/", WebViewAssetLoader.AssetsPathHandler(this@MainActivity))
-            .build()
-
         webView.webViewClient = object : WebViewClient() {
-            override fun shouldInterceptRequest(
-                view: WebView,
-                request: WebResourceRequest
-            ): WebResourceResponse? {
-                val url = request.url
-                if (url.host == ASSETS_HOST) {
-                    val path = url.path ?: ""
-                    
-                    // CRITICAL: Let the real server handle /api, /uploads, etc.
-                    // Do NOT intercept these with local assets!
-                    if (path.startsWith("/api") || path.startsWith("/uploads") || path.startsWith("/socket.io")) {
-                        return super.shouldInterceptRequest(view, request)
-                    }
-
-                    var response = assetLoader.shouldInterceptRequest(url)
-                    // SPA fallback: If it's a navigation route (no file extension) and assetLoader didn't find it, serve index.html
-                    if (response == null) {
-                        if (!path.substringAfterLast("/", "").contains(".")) {
-                            response = assetLoader.shouldInterceptRequest(Uri.parse("https://${ASSETS_HOST}/index.html"))
-                        }
-                    }
-                    return response
-                }
-                return super.shouldInterceptRequest(view, request)
-            }
 
             override fun shouldOverrideUrlLoading(
                 view: WebView,
@@ -218,8 +179,8 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
-                // Keep our timelineplus.site AND appassets domains inside
-                return if (host == ALLOWED_HOST || host?.endsWith(".$ALLOWED_HOST") == true || host == ASSETS_HOST) {
+                // Keep our domains inside the webview
+                return if (host == ALLOWED_HOST || host?.endsWith(".$ALLOWED_HOST") == true) {
                     false
                 } else {
                     try {
