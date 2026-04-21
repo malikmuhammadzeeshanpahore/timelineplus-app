@@ -1,0 +1,40 @@
+@import 'variables';
+
+// Neon Glow Mixin
+@mixin neon-border($color: $secondary) {
+    border: 1px solid rgba($color, 0.5);
+    box-shadow: 0 0 5px rgba($color, 0.2), 0 0 10px rgba($color, 0.1), inset 0 0 5px rgba($color, 0.05);
+    transition: all 0.3s ease;
+
+    &:hover {
+        border-color: $color;
+        box-shadow: 0 0 10px rgba($color, 0.4), 0 0 20px rgba($color, 0.2), inset 0 0 10px rgba($color, 0.1);
+    }
+}
+
+// Glass Effect Mixin - Updated for clearer, sharper look
+@mixin glass($bg: rgba(20, 20, 20, 0.6), $blur: 12px) {
+    background: $bg;
+    backdrop-filter: blur($blur);
+    -webkit-backdrop-filter: blur($blur);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+// Flex Mixins
+@mixin flex-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@mixin flex-between {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+@mixin mobile {
+    @media (max-width: 768px) {
+        @content;
+    }
+}

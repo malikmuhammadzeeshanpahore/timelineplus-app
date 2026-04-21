@@ -1,0 +1,28 @@
+<svg width="400" height="300" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Chart Background -->
+  <rect x="50" y="50" width="300" height="200" rx="12" fill="white" stroke="#E5E7EB" stroke-width="2"/>
+  
+  <!-- Grid Lines -->
+  <line x1="50" y1="200" x2="350" y2="200" stroke="#F3F4F6" stroke-width="2"/>
+  <line x1="50" y1="150" x2="350" y2="150" stroke="#F3F4F6" stroke-width="2"/>
+  <line x1="50" y1="100" x2="350" y2="100" stroke="#F3F4F6" stroke-width="2"/>
+  
+  <!-- Growth Area -->
+  <path d="M50 200 L100 180 L150 190 L200 140 L250 120 L300 80 L300 250 L50 250 Z" fill="rgba(255, 102, 0, 0.1)"/>
+  <path d="M50 200 L100 180 L150 190 L200 140 L250 120 L300 80" stroke="#FF6600" stroke-width="4" fill="none"/>
+  
+  <!-- Points -->
+  <circle cx="100" cy="180" r="4" fill="#FF6600"/>
+  <circle cx="200" cy="140" r="4" fill="#FF6600"/>
+  <circle cx="300" cy="80" r="6" fill="#FF6600" stroke="white" stroke-width="2"/>
+  
+  <!-- Rocket Icon -->
+  <text x="290" y="70" font-size="30">🚀</text>
+  
+  <!-- User Avatars (Engagement) -->
+  <circle cx="120" cy="220" r="10" fill="#E5E7EB"/>
+  <circle cx="150" cy="220" r="10" fill="#D1D5DB"/>
+  <circle cx="180" cy="220" r="10" fill="#9CA3AF"/>
+  <circle cx="210" cy="220" r="10" fill="#6B7280"/>
+  <circle cx="240" cy="220" r="10" fill="#4B5563"/>
+</svg>
