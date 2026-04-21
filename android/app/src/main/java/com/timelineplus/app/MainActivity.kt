@@ -128,8 +128,16 @@ class MainActivity : AppCompatActivity() {
 
     @Suppress("SetJavaScriptEnabled")
     private fun setupWebView() {
+        if (BuildConfig.DEBUG) {
+            WebView.setWebContentsDebuggingEnabled(true)
+        }
+
         CookieManager.getInstance().setAcceptCookie(true)
         CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true)
+
+        webView.viewTreeObserver.addOnScrollChangedListener {
+            swipeRefresh.isEnabled = webView.scrollY == 0
+        }
 
         with(webView.settings) {
             javaScriptEnabled = true
@@ -137,23 +145,24 @@ class MainActivity : AppCompatActivity() {
             databaseEnabled = true
             loadWithOverviewMode = true
             useWideViewPort = true
-            setSupportZoom(true)
-            builtInZoomControls = true
+            setSupportZoom(false)
+            builtInZoomControls = false
             displayZoomControls = false
             mediaPlaybackRequiresUserGesture = false
             javaScriptCanOpenWindowsAutomatically = true
-            mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
+            mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
             cacheMode = WebSettings.LOAD_DEFAULT
-            // Enabled because the bundled frontend is loaded from file:///android_asset/
-            // and needs to fetch its own JS/CSS chunks plus call the remote API.
             allowFileAccess = true
             allowContentAccess = true
-            @Suppress("DEPRECATION")
-            allowFileAccessFromFileURLs = true
-            @Suppress("DEPRECATION")
-            allowUniversalAccessFromFileURLs = true
-            userAgentString = "$userAgentString TimelinePlusApp/1.0"
+            // Override user agent to look like real Chrome Mobile browser.
+            // This is CRITICAL: Google blocks OAuth in Android WebView by detecting "wv"
+            // in the default WebView user agent. Using a real Chrome UA bypasses this block.
+            userAgentString = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36"
         }
+
+        // Prevent white flash when React mounts or navigates between pages
+        webView.setBackgroundColor(android.graphics.Color.TRANSPARENT)
+        webView.setLayerType(View.LAYER_TYPE_HARDWARE, null)
 
         webView.setDownloadListener { url, userAgent, contentDisposition, mimeType, _ ->
             startDownload(url, userAgent, contentDisposition, mimeType)
@@ -196,14 +205,35 @@ class MainActivity : AppCompatActivity() {
 
             override fun onPageFinished(view: WebView, url: String) {
                 swipeRefresh.isRefreshing = false
-                // Pull-to-refresh should only trigger when the page is at the top
-                webView.viewTreeObserver.addOnScrollChangedListener {
-                    swipeRefresh.isEnabled = webView.scrollY == 0
-                }
+                
+                // Inject an error catcher for the white-screen bug tracking
+                view.evaluateJavascript(
+                    """
+                    window.addEventListener('error', function(e) {
+                        console.error('JS_CRASH_REPORT: ' + e.message + ' at ' + e.filename + ':' + e.lineno);
+                    });
+                    """.trimIndent(), null
+                )
             }
         }
 
         webView.webChromeClient = object : WebChromeClient() {
+            override fun onConsoleMessage(consoleMessage: android.webkit.ConsoleMessage): Boolean {
+                val msg = consoleMessage.message()
+                // Alert the user instantly if React throws a critical error!
+                if (consoleMessage.messageLevel() == android.webkit.ConsoleMessage.MessageLevel.ERROR) {
+                    runOnUiThread {
+                        if (msg.contains("TypeError") || msg.contains("Error") || msg.contains("Exception")) {
+                            Toast.makeText(this@MainActivity, "JS Error: " + msg.take(100), Toast.LENGTH_LONG).show()
+                        }
+                    }
+                    android.util.Log.e("WebViewError", msg + " -- From line "
+                            + consoleMessage.lineNumber() + " of "
+                            + consoleMessage.sourceId())
+                }
+                return super.onConsoleMessage(consoleMessage)
+            }
+
             override fun onShowFileChooser(
                 webView: WebView?,
                 filePathCallback: ValueCallback<Array<Uri>>?,
