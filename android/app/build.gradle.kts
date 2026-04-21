@@ -21,6 +21,24 @@ android {
         versionName = "1.0.0"
     }
 
+    val keystoreFile = file("keystore.jks")
+    val keystorePassword: String? = System.getenv("KEYSTORE_PASSWORD")
+    val keyAlias: String? = System.getenv("KEY_ALIAS")
+    val keyPassword: String? = System.getenv("KEY_PASSWORD")
+    val canSign = keystoreFile.exists() && !keystorePassword.isNullOrBlank()
+        && !keyAlias.isNullOrBlank() && !keyPassword.isNullOrBlank()
+
+    if (canSign) {
+        signingConfigs {
+            create("release") {
+                storeFile = keystoreFile
+                storePassword = keystorePassword
+                this.keyAlias = keyAlias
+                this.keyPassword = keyPassword
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -28,6 +46,9 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            if (canSign) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
         debug {
             isMinifyEnabled = false
