@@ -5,25 +5,71 @@ on:
     branches: ["**"]
     paths:
       - "android/**"
+      - "frontend/**"
       - ".github/workflows/android.yml"
   pull_request:
     paths:
       - "android/**"
+      - "frontend/**"
       - ".github/workflows/android.yml"
   workflow_dispatch:
+
+# ==============================================================================
+# IMPORTANT: Verify these 3 values match YOUR project before pushing.
+# If your frontend folder, package manager, or build output is different,
+# change these env vars (no other edits needed).
+# ==============================================================================
+env:
+  FRONTEND_DIR: frontend          # folder containing your web app's package.json
+  PACKAGE_MANAGER: npm            # one of: npm | pnpm | yarn
+  BUILD_OUTPUT_DIR: dist          # build output folder (Vite=dist, CRA=build, Next export=out)
 
 jobs:
   build:
     name: Assemble APK
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: android
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # ---------- Frontend build ----------
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Enable corepack (for pnpm/yarn)
+        if: env.PACKAGE_MANAGER != 'npm'
+        run: corepack enable
+
+      - name: Install frontend dependencies
+        working-directory: ${{ env.FRONTEND_DIR }}
+        run: |
+          case "$PACKAGE_MANAGER" in
+            npm)  npm ci || npm install ;;
+            pnpm) pnpm install --frozen-lockfile || pnpm install ;;
+            yarn) yarn install --frozen-lockfile || yarn install ;;
+          esac
+
+      - name: Build frontend
+        working-directory: ${{ env.FRONTEND_DIR }}
+        run: |
+          case "$PACKAGE_MANAGER" in
+            npm)  npm run build ;;
+            pnpm) pnpm run build ;;
+            yarn) yarn build ;;
+          esac
+
+      - name: Copy frontend bundle into Android assets
+        run: |
+          rm -rf android/app/src/main/assets/web
+          mkdir -p android/app/src/main/assets/web
+          cp -r "$FRONTEND_DIR/$BUILD_OUTPUT_DIR"/* android/app/src/main/assets/web/
+          echo "Bundled files:"
+          ls -la android/app/src/main/assets/web/ | head -30
+
+      # ---------- Android build ----------
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -37,6 +83,7 @@ jobs:
         env:
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
         if: env.GOOGLE_SERVICES_JSON != ''
+        working-directory: android
         run: |
           echo "$GOOGLE_SERVICES_JSON" | base64 -d > app/google-services.json
           echo "Wrote app/google-services.json"
@@ -45,17 +92,21 @@ jobs:
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         if: env.KEYSTORE_BASE64 != ''
+        working-directory: android
         run: |
           echo "$KEYSTORE_BASE64" | base64 -d > app/keystore.jks
           echo "Wrote app/keystore.jks"
 
       - name: Generate Gradle wrapper
+        working-directory: android
         run: gradle wrapper --gradle-version 8.7
 
       - name: Build debug APK
+        working-directory: android
         run: ./gradlew :app:assembleDebug --no-daemon --stacktrace
 
       - name: Build release APK
+        working-directory: android
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
@@ -63,6 +114,7 @@ jobs:
         run: ./gradlew :app:assembleRelease --no-daemon --stacktrace
 
       - name: Rename release APK
+        working-directory: android
         run: |
           if [ -f app/build/outputs/apk/release/app-release.apk ]; then
             mv app/build/outputs/apk/release/app-release.apk \

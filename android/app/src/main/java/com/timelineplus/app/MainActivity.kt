@@ -43,6 +43,9 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         const val HOME_URL = "https://appassets.androidplatform.net/index.html"
+        // Bundled frontend lives in app/src/main/assets/web/ and is loaded via file:// scheme.
+        const val HOME_URL = "file:///android_asset/web/index.html"
+        // The remote API host the bundled frontend talks to (used to whitelist navigations).
         const val ALLOWED_HOST = "timelineplus.site"
         const val ASSETS_HOST = "appassets.androidplatform.net"
     }
@@ -156,8 +159,14 @@ class MainActivity : AppCompatActivity() {
             javaScriptCanOpenWindowsAutomatically = true
             mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
             cacheMode = WebSettings.LOAD_DEFAULT
-            allowFileAccess = false
+            // Enabled because the bundled frontend is loaded from file:///android_asset/
+            // and needs to fetch its own JS/CSS chunks plus call the remote API.
+            allowFileAccess = true
             allowContentAccess = true
+            @Suppress("DEPRECATION")
+            allowFileAccessFromFileURLs = true
+            @Suppress("DEPRECATION")
+            allowUniversalAccessFromFileURLs = true
             userAgentString = "$userAgentString TimelinePlusApp/1.0"
         }
 
