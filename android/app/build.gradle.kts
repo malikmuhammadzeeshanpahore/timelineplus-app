@@ -21,11 +21,7 @@ android {
         versionName = "1.0.0"
     }
 
-    packaging {
-        resources {
-            excludes += setOf("**/*.gz", "**/*.br")
-        }
-    }
+
 
     val keystoreFile = file("keystore.jks")
     val keystorePassword: String? = System.getenv("KEYSTORE_PASSWORD")
