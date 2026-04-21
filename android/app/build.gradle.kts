@@ -1,9 +1,7 @@
-// ... other contents of build.gradle.kts
-
-packaging {
-    resources {
-        exclude("**/*.gz")
+android {
+    packaging {
+        resources {
+            excludes += setOf("**/*.gz")
+        }
     }
-} // New packaging syntax
-
-// ... other contents of build.gradle.kts
+}
