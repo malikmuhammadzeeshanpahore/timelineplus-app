@@ -2,7 +2,7 @@
 
 packaging {
     resources {
-        excludes += "**/*.gz"
+        exclude("**/*.gz")
     }
 } // New packaging syntax
 
