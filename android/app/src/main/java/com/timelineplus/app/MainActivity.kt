@@ -42,10 +42,10 @@ import java.util.Locale
 class MainActivity : AppCompatActivity() {
 
     companion object {
-        const val HOME_URL = "https://appassets.androidplatform.net/index.html"
-        // The remote API host the bundled frontend talks to (used to whitelist navigations).
+        // Run natively on the remote host bypasses all CORS/Cookie issues!
         const val ALLOWED_HOST = "timelineplus.site"
-        const val ASSETS_HOST = "appassets.androidplatform.net"
+        const val ASSETS_HOST = "timelineplus.site"
+        const val HOME_URL = "https://$ASSETS_HOST/"
     }
 
     private lateinit var swipeRefresh: SwipeRefreshLayout
@@ -119,18 +119,14 @@ class MainActivity : AppCompatActivity() {
         
         if (scheme == "http" || scheme == "https") {
             if (data.host == ALLOWED_HOST) {
-                val path = data.path ?: ""
-                // Don't redirect API links or file uploads, though we shouldn't get them dynamically often
-                if (!path.startsWith("/api")) {
-                    val query = data.query?.let { "?$it" } ?: ""
-                    return "https://$ASSETS_HOST${path}$query"
-                }
+                // If it's our domain, just pass the URL since ASSETS_HOST is the same now!
+                return data.toString()
             }
             return data.toString()
         }
         
         if (scheme == "timelineplus") {
-            // timelineplus://path -> https://appassets.androidplatform.net/path
+            // timelineplus://path -> https://timelineplus.site/path
             val path = (data.host ?: "") + (data.path ?: "")
             val query = data.query?.let { "?$it" } ?: ""
             return "https://$ASSETS_HOST/${path.trimStart('/')}$query"
@@ -184,10 +180,17 @@ class MainActivity : AppCompatActivity() {
             ): WebResourceResponse? {
                 val url = request.url
                 if (url.host == ASSETS_HOST) {
+                    val path = url.path ?: ""
+                    
+                    // CRITICAL: Let the real server handle /api, /uploads, etc.
+                    // Do NOT intercept these with local assets!
+                    if (path.startsWith("/api") || path.startsWith("/uploads") || path.startsWith("/socket.io")) {
+                        return super.shouldInterceptRequest(view, request)
+                    }
+
                     var response = assetLoader.shouldInterceptRequest(url)
                     // SPA fallback: If it's a navigation route (no file extension) and assetLoader didn't find it, serve index.html
                     if (response == null) {
-                        val path = url.path ?: ""
                         if (!path.substringAfterLast("/", "").contains(".")) {
                             response = assetLoader.shouldInterceptRequest(Uri.parse("https://${ASSETS_HOST}/index.html"))
                         }
