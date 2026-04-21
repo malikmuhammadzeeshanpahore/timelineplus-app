@@ -20,6 +20,15 @@ android {
         versionCode = 1
         versionName = "1.0.0"
     }
+    sourceSets {
+        main {
+            assets.srcDirs = ['src/main/assets']
+        }
+    }
+    
+    packagingOptions {
+        exclude '**/*.gz'
+    }
 
     val keystoreFile = file("keystore.jks")
     val keystorePassword: String? = System.getenv("KEYSTORE_PASSWORD")
